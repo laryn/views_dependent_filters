@@ -33,24 +33,26 @@ function views_dependent_filters_exposed_form_after_build($form, $form_state) {
     // Build up the CTools #dependency item to put onto each dependent element.
     $form_dependency = array();
     foreach ($dependency_info['controllers'] as $filter_id => $controller_values) {
+      $identifier = $dependency_info['identifiers'][$filter_id];
       // Regular form.
-      $filter_id = views_dependent_filters_recreate_html_id($filter_id);
-      $form_dependency['edit-' . $filter_id] = $controller_values;
+      $filter_html_id = views_dependent_filters_recreate_html_id($identifier);
+      $form_dependency['edit-' . $filter_html_id] = $controller_values;
       // better_exposed_filters form.
       foreach ($controller_values as $value) {
         $value = views_dependent_filters_recreate_html_id($value);
-        $key = 'edit-' . $filter_id . '-' . $value;
+        $key = 'edit-' . $filter_html_id . '-' . $value;
         $form_dependency[$key] = array(TRUE);
       }
     }
 
     // Set the dependency on each form element as required.
-    foreach ($dependency_info['dependents'] as $dependent) {
-      $form[$dependent]['#process'][] = 'ctools_dependent_process';
-      if (!isset($form[$dependent]['#dependency'])) {
-        $form[$dependent]['#dependency'] = array();
+    foreach ($dependency_info['dependents'] as $dependent_filter_id) {
+      $identifier = $dependency_info['identifiers'][$dependent_filter_id];
+      $form[$identifier]['#process'][] = 'ctools_dependent_process';
+      if (!isset($form[$identifier]['#dependency'])) {
+        $form[$identifier]['#dependency'] = array();
       }
-      $form[$dependent]['#dependency'] += $form_dependency;
+      $form[$identifier]['#dependency'] += $form_dependency;
     }
   }
 
