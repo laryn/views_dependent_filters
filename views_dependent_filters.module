@@ -27,6 +27,13 @@ function views_dependent_filters_views_api() {
  * See also merlinofchaos's comment here: http://drupal.org/node/1406470
  */
 function views_dependent_filters_exposed_form_after_build($form, $form_state) {
+  // For reasons I don't understand and haven't time to dig into now, this
+  // is called twice when the exposed filter form is shown in a block, the
+  // first time without our expected key. Hence just skip it in that case.
+  if (!isset($form_state['dependent_exposed_filters'])) {
+    return $form;
+  }
+
   // We may have multiple dependency info arrays from more than one copies
   // of the views_dependent_filters_handler_filter_dependent handler.
   foreach ($form_state['dependent_exposed_filters'] as $dependency_info) {
