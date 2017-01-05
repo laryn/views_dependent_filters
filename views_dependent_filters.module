@@ -36,30 +36,32 @@ function views_dependent_filters_exposed_form_after_build($form, $form_state) {
 
   // We may have multiple dependency info arrays from more than one copies
   // of the views_dependent_filters_handler_filter_dependent handler.
-  foreach ($form_state['dependent_exposed_filters'] as $dependency_info) {
-    // Build up the CTools #dependency item to put onto each dependent element.
-    $form_dependency = array();
-    foreach ($dependency_info['controllers'] as $filter_id => $controller_values) {
-      $identifier = $dependency_info['identifiers'][$filter_id];
-      // Regular form.
-      $filter_html_id = views_dependent_filters_recreate_html_id($identifier);
-      $form_dependency['edit-' . $filter_html_id] = $controller_values;
-      // better_exposed_filters form.
-      foreach ($controller_values as $value) {
-        $value = views_dependent_filters_recreate_html_id($value);
-        $key = 'edit-' . $filter_html_id . '-' . $value;
-        $form_dependency[$key] = array(TRUE);
+  if (!empty($form_state['dependent_exposed_filters'])){
+    foreach ($form_state['dependent_exposed_filters'] as $dependency_info) {
+      // Build up the CTools #dependency item to put onto each dependent element.
+      $form_dependency = array();
+      foreach ($dependency_info['controllers'] as $filter_id => $controller_values) {
+        $identifier = $dependency_info['identifiers'][$filter_id];
+        // Regular form.
+        $filter_html_id = views_dependent_filters_recreate_html_id($identifier);
+        $form_dependency['edit-' . $filter_html_id] = $controller_values;
+        // better_exposed_filters form.
+        foreach ($controller_values as $value) {
+          $value = views_dependent_filters_recreate_html_id($value);
+          $key = 'edit-' . $filter_html_id . '-' . $value;
+          $form_dependency[$key] = array(TRUE);
+        }
       }
-    }
 
-    // Set the dependency on each form element as required.
-    foreach ($dependency_info['dependents'] as $dependent_filter_id) {
-      $identifier = $dependency_info['identifiers'][$dependent_filter_id];
-      $form[$identifier]['#process'][] = 'ctools_dependent_process';
-      if (!isset($form[$identifier]['#dependency'])) {
-        $form[$identifier]['#dependency'] = array();
+      // Set the dependency on each form element as required.
+      foreach ($dependency_info['dependents'] as $dependent_filter_id) {
+        $identifier = $dependency_info['identifiers'][$dependent_filter_id];
+        $form[$identifier]['#process'][] = 'ctools_dependent_process';
+        if (!isset($form[$identifier]['#dependency'])) {
+          $form[$identifier]['#dependency'] = array();
+        }
+        $form[$identifier]['#dependency'] += $form_dependency;
       }
-      $form[$identifier]['#dependency'] += $form_dependency;
     }
   }
 
