@@ -12,7 +12,7 @@
  */
 function views_dependent_filters_views_api() {
   return array(
-    'api' => '3.0-alpha1',
+    'api' => 3,
     'path' => drupal_get_path('module', 'views_dependent_filters'),
   );
 }
