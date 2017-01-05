@@ -60,7 +60,7 @@ function views_dependent_filters_exposed_form_after_build($form, $form_state) {
         if (!isset($form[$identifier]['#dependency'])) {
           $form[$identifier]['#dependency'] = array();
         }
-        $form[$identifier]['#dependency'] += $form_dependency;
+        $form[$identifier]['#dependency'] = array_merge_recursive($form[$identifier]['#dependency'], $form_dependency);
       }
     }
   }
