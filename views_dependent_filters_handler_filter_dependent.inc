@@ -169,7 +169,9 @@ class views_dependent_filters_handler_filter_dependent extends views_handler_fil
     }
   }
 
-  function has_extra_options() { return TRUE; }
+  function has_extra_options() {
+    return TRUE;
+  }
 
   /**
    * Provide defaults for the handler.
@@ -197,7 +199,9 @@ class views_dependent_filters_handler_filter_dependent extends views_handler_fil
    * Override the options form exposed options subform to show nothing, as the
    * options here don't make sense for us.
    */
-  function expose_form(&$form, &$form_state) { return; }
+  function expose_form(&$form, &$form_state) {
+    return;
+  }
 
   /**
    * Display the filter on the administrative summary.
@@ -228,7 +232,7 @@ class views_dependent_filters_handler_filter_dependent extends views_handler_fil
       // them with AND or OR. Hence one for later, if ever required.
       'controllers' => array(),
       // An array of dependent filter IDs.
-      'dependents'  => array(),
+      'dependents' => array(),
       // A lookup of filter IDs to filter URL identifiers.
       'identifiers' => array(),
     );
