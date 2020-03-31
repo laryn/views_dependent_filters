@@ -29,11 +29,8 @@ function views_dependent_filters_views_api() {
 /**
  * After build form processor for the views exposed form.
  *
- * This is added by the exposed filter handler so that we can add a CTools
+ * This is added by the exposed filter handler so that we can add a #states
  * visiblity dependency.
- * We don't use Backdrop core #states because as far as I can tell they don't
- * work here.
- * See also merlinofchaos's comment here: http://drupal.org/node/1406470
  */
 function views_dependent_filters_exposed_form_after_build($form, $form_state) {
   // For reasons I don't understand and haven't time to dig into now, this
@@ -47,56 +44,40 @@ function views_dependent_filters_exposed_form_after_build($form, $form_state) {
   // of the views_dependent_filters_handler_filter_dependent handler.
   if (!empty($form_state['dependent_exposed_filters'])) {
     foreach ($form_state['dependent_exposed_filters'] as $dependency_info) {
-      // Build up the CTools #dependency item to put onto each dependent element.
-      $form_dependency = array();
-      foreach ($dependency_info['controllers'] as $filter_id => $controller_values) {
-        $identifier = $dependency_info['identifiers'][$filter_id];
+      // Build up the #states item to put onto each dependent element.
+      $form_states = array();
+      foreach ($dependency_info['controllers'] as $controller_filter_id => $controller_values) {
+        $identifier = $dependency_info['identifiers'][$controller_filter_id];
         // Regular form.
-        $filter_html_id = views_dependent_filters_recreate_html_id($identifier);
-        $form_dependency['edit-' . $filter_html_id] = $controller_values;
-        // better_exposed_filters form.
+        $count = 0;
+        foreach ($controller_values as $controller_value) {
+          if ($count) {
+            $states_value[] = 'or';
+          }
+          $states_value[] = array(':input[name="' . $controller_filter_id . '"]' => array('value' => $controller_value));
+          $count ++;
+        }
+        $form_states['visible'] = array(
+          $states_value,
+        );
+        // Better Exposed Filters form. 
+        // TODO: Testing after converting to #states (if BEF is ported yet)
         foreach ($controller_values as $value) {
-          $value = views_dependent_filters_recreate_html_id($value);
-          $key = 'edit-' . $filter_html_id . '-' . $value;
-          $form_dependency[$key] = array(TRUE);
+          $key = $identifier . '-' . $value;
+          $form_states[$key] = array(TRUE);
         }
       }
 
-      // Set the dependency on each form element as required.
+      // Set the #states on each form element as required.
       foreach ($dependency_info['dependents'] as $dependent_filter_id) {
         $identifier = $dependency_info['identifiers'][$dependent_filter_id];
-        $form[$identifier]['#process'][] = 'ctools_dependent_process';
-        if (!isset($form[$identifier]['#dependency'])) {
-          $form[$identifier]['#dependency'] = array();
+        if (!isset($form[$identifier]['#states'])) {
+          $form[$identifier]['#states'] = array();
         }
-        $form[$identifier]['#dependency'] = array_merge_recursive($form[$identifier]['#dependency'], $form_dependency);
+        $form[$identifier]['#states'] = array_merge_recursive($form[$identifier]['#states'], $form_states);
       }
     }
   }
 
   return $form;
-}
-
-/**
- * Convert a string to an HTML id matching one made with backdrop_html_id().
- *
- * We can't simply call backdrop_html_id() because that only returns unique
- * ids; this is intended for when the ID already exists and we want to recreate
- * it from the original input.
- */
-function views_dependent_filters_recreate_html_id($id) {
-  $id = strtr(backdrop_strtolower($id), array(' ' => '-', '_' => '-', '[' => '-', ']' => ''));
-
-  // As defined in http://www.w3.org/TR/html4/types.html#type-name, HTML IDs can
-  // only contain letters, digits ([0-9]), hyphens ("-"), underscores ("_"),
-  // colons (":"), and periods ("."). We strip out any character not in that
-  // list. Note that the CSS spec doesn't allow colons or periods in identifiers
-  // (http://www.w3.org/TR/CSS21/syndata.html#characters), so we strip those two
-  // characters as well.
-  $id = preg_replace('/[^A-Za-z0-9\-_]/', '', $id);
-
-  // Removing multiple consecutive hyphens.
-  $id = preg_replace('/\-+/', '-', $id);
-
-  return $id;
 }
