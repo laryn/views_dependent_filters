@@ -268,7 +268,12 @@ class views_dependent_filters_handler_filter_dependent extends views_handler_fil
       // Get the form identifier.
       $identifier = $filters[$filter_id]->options['expose']['identifier'];
       // Get the input for this filter.
-      $input = $form_state['input'][$identifier];
+      if (isset($form_state['input'][$identifier])) {
+        $input = $form_state['input'][$identifier];
+      }
+      else {
+        $input = $form[$identifier]['#default_value'];
+      }
       // Convert values for non-multiple filters to an array.
       if (!$this->view->filter[$filter_id]->options['expose']['multiple']) {
         $input = array($input);
