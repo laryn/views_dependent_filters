@@ -43,41 +43,40 @@ function views_dependent_filters_exposed_form_after_build($form, $form_state) {
   // We may have multiple dependency info arrays from more than one copies
   // of the views_dependent_filters_handler_filter_dependent handler.
   if (!empty($form_state['dependent_exposed_filters'])) {
+    $states_value = array();
     foreach ($form_state['dependent_exposed_filters'] as $dependency_info) {
       // Build up the #states item to put onto each dependent element.
       $form_states = array();
       foreach ($dependency_info['controllers'] as $controller_filter_id => $controller_values) {
-        $identifier = $dependency_info['identifiers'][$controller_filter_id];
+        $controller_identifier = $dependency_info['identifiers'][$controller_filter_id];
         // Regular form.
         $count = 0;
         foreach ($controller_values as $controller_value) {
-          if ($count) {
+          if ($count > 0) {
             $states_value[] = 'or';
           }
-          $states_value[] = array(':input[name="' . $controller_filter_id . '"]' => array('value' => $controller_value));
+          $states_value[':input[name="' . $controller_identifier . '"]'] = array('value' => $controller_value);
           $count ++;
         }
-        $form_states['visible'] = array(
-          $states_value,
-        );
+        $form_states['visible'] = $states_value;
         // Better Exposed Filters form. 
         // TODO: Testing after converting to #states (if BEF is ported yet)
+        /*
         foreach ($controller_values as $value) {
-          $key = $identifier . '-' . $value;
+          $key = $controller_identifier . '-' . $value;
           $form_states[$key] = array(TRUE);
         }
+        */
       }
-
       // Set the #states on each form element as required.
       foreach ($dependency_info['dependents'] as $dependent_filter_id) {
-        $identifier = $dependency_info['identifiers'][$dependent_filter_id];
-        if (!isset($form[$identifier]['#states'])) {
-          $form[$identifier]['#states'] = array();
+        $dependent_identifier = $dependency_info['identifiers'][$dependent_filter_id];
+        if (!isset($form[$dependent_identifier]['#states'])) {
+          $form[$dependent_identifier]['#states'] = array();
         }
-        $form[$identifier]['#states'] = array_merge_recursive($form[$identifier]['#states'], $form_states);
+        $form[$dependent_identifier]['#states'] = array_merge_recursive($form[$dependent_identifier]['#states'], $form_states);
       }
     }
   }
-
   return $form;
 }
